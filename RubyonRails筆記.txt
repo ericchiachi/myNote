@@ -1,0 +1,89 @@
+Ruby on Rails 筆記
+
+1.環境
+use RVM(ruby versions manager) to install and manage our Ruby versions.
+
+安裝 rvm  \curl -L https://get.rvm.io | bash -s stable
+
+課程使用 ruby 2.6.* 對應 rails 5.2.8
+
+rvm install ruby 2.6.6
+gem install rails -v 5.2.8
+
+
+基本操作
+1.新增專案
+rails new testRailsProject
+
+2.執行rails本地
+進入專案資料夾
+rails s
+
+3.在專案下創立名為home的controller
+rails g controller home
+
+4.移除coffee架構
+./Gemfile 下 coffee 行註解掉
+移除turbolinks架構
+./Gemfile 下 turbolinks 行註解掉
+./app/assets/javascripts/application.js移除//= require turbolinks
+./app/views/layouts/application.html.erb 移除'data-turbolinks-track': 'reload' 
+並且清除快取rake tmp:cache:clear
+
+5.加入 bootstrap3 以 Gem方式
+官網說明
+https://github.com/twbs/bootstrap-sass
+在Gemfile加入 
+    gem 'bootstrap-sass', '~> 3.4.1'
+    gem 'sassc-rails', '>= 2.1.0'
+Terminal 下只令 bundle install
+
+app/assets/stylesheets/application.scss改名（直接對原本的css rename）
+在app/assets/stylesheets/加入自訂 bootstrap3_gem.scss
+    @import "bootstrap-sprockets";
+    @import "bootstrap";
+
+/config/initializers/assets.rb    
+    反註解
+    Rails.application.config.assets.precompile += %w( admin.js admin.css )
+    並改為
+    Rails.application.config.assets.precompile += %w( bootstrap3_gem.css ) （是css沒錯）
+
+/shoppingWeb/app/views/layouts/application.html.erb
+    在<%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload' %>上方加入
+    <%= stylesheet_link_tag    'bootstrap3_gem', media: 'all', 'data-turbolinks-track': 'reload' %>
+
+在Gemfile加入 
+    gem 'jquery-rails'
+Terminal 下只令 bundle install
+
+在app/assets/javascripts/application.js加入
+    //= require jquery3
+    //= require bootstrap-sprockets
+
+建立路徑
+目的：在網址加入/pageName
+在routes.rb內加入 get ”pageName”, to:”home#pageName” (用途, 拿到的指令, 前往的controller)
+
+產生資料庫(在rails端)
+    rails g model product
+刪除資料庫(在rails端)（務必先砍掉產生的table）
+    rails d model product
+
+db/migrate/20220703094804_create_products.rb 用於設定資料庫欄位
+    rails db:migrate 產生 db/schema.rb
+
+若你的20220703094804_create_products.rb 已經用於產生相關的sqlite3資料庫
+這時你無法再次下 `rails db:migrate`
+    rake db:rollback 會反回上一個狀態
+更直接的更新法，可以下
+    rake db:drop db:create db:migrate
+
+要新增欄位，也可以新增db，在設定要新增的數值
+    rails g migration db_name
+
+db/seeds.rb 用於給db資料，
+    rake db:seeds 會執行一次裡面的指令（可重複執行
+
+在routes.rb內加入
+    resources :controllerName ，並且下rake routes，系統自動加入GET PATCH PUT DELETE的query(rest api)
